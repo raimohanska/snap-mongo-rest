@@ -1,1 +1,1 @@
-ghci -isrc:src -isrc:test -XOverloadedStrings
+ghci -isrc:src -isrc:test -XOverloadedStrings -hide-package aeson-native-0.3.3.1

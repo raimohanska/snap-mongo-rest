@@ -20,27 +20,26 @@ import           Control.Monad.IO.Class
 data Resu = Resu { number :: Int, name :: String } deriving (Data, Typeable, Show, Eq)
 $(deriveBson ''Resu)
 
+resuDb = "resu"
+resuCollection = "resu"
+
 postResu = method POST $ catchError "Internal Error" $ do 
     resu <- readBodyJson :: Snap Resu
     liftIO $ putStrLn $ "New resu: " ++ (show resu)
-    liftIO $ mongoPost resu
+    liftIO $ mongoPost resuDb resuCollection resu
     writeLBS $ JSON.encode $ ("1" :: String) 
 
-getResu = restfulGet getResu'    
-  where getResu' id = do maybeResu <- resuById id
-                         case maybeResu of
-                            Nothing -> notFound
-                            Just resu -> writeLBS $ JSON.encode $ resu
+getResu = jsonGet $ resuById 
 
 resuById :: MonadIO m => String -> m (Maybe Resu)
-resuById id = mongoFindOne (select ["_id" =: (read id :: ObjectId)] "resu")
+resuById id = mongoFindOne resuDb (select ["_id" =: (read id :: ObjectId)] resuCollection)
 
-mongoPost :: Applicative m => MonadIO m => Bson a => a -> m Value
-mongoPost x = doMongo "resu" $ insert "resu" $ toBson x 
+mongoPost :: Applicative m => MonadIO m => Bson a => Database -> Collection -> a -> m Value
+mongoPost db collection x = doMongo db $ insert collection $ toBson x 
 
-mongoFindOne :: MonadIO m => Bson a => Query -> m (Maybe a)
-mongoFindOne query = do
-                 doc <- doMongo "resu" $ findOne query
+mongoFindOne :: MonadIO m => Bson a => Database -> Query -> m (Maybe a)
+mongoFindOne db query = do
+                 doc <- doMongo db $ findOne query
                  return (doc >>= (fromBson >=> Just))
 
 doMongo :: MonadIO m => Database -> Action m a -> m a

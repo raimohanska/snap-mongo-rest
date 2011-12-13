@@ -19,5 +19,5 @@ jsonGet :: Data a => (String -> Snap (Maybe a)) -> Snap ()
 jsonGet lookup = restfulGet $ \id -> do
     maybeFound <- lookup id
     case maybeFound of
-      nothing -> notFound
+      Nothing -> notFound
       Just(val) -> writeLBS $ JSON.encode $ val

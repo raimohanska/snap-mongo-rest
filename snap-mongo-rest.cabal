@@ -1,4 +1,4 @@
-Name:                mongo-skeleton
+Name:                snap-mongo-rest
 Version:             0.1
 Synopsis:            Project Synopsis Here
 Description:         Project Description Here
@@ -14,7 +14,7 @@ Flag development
   Description: Whether to build the server in development (interpreted) mode
   Default: False
 
-Executable mongo-skeleton
+Executable snap-mongo-rest
   hs-source-dirs: src, test
   main-is: Main.hs
   default-language: Haskell2010

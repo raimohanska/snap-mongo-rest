@@ -43,8 +43,7 @@ mongoFindOne query = do
                  doc <- doMongo "resu" $ findOne query
                  case doc of
                     Nothing -> return Nothing
-                    Just d -> do result <- fromBson d 
-                                 return $ Just result
+                    Just d -> do fromBson d >>= return . Just
 
 doMongo :: MonadIO m => Database -> Action m a -> m a
 doMongo db action = do

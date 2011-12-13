@@ -41,9 +41,7 @@ mongoPost x = doMongo "resu" $ insert "resu" $ toBson x
 mongoFindOne :: MonadIO m => Bson a => Query -> m (Maybe a)
 mongoFindOne query = do
                  doc <- doMongo "resu" $ findOne query
-                 case doc of
-                    Nothing -> return Nothing
-                    Just d -> do fromBson d >>= return . Just
+                 return (doc >>= (fromBson >=> Just))
 
 doMongo :: MonadIO m => Database -> Action m a -> m a
 doMongo db action = do

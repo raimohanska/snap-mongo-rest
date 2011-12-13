@@ -15,6 +15,7 @@ import           Util.Rest
 import           Util.Json
 import           Data.Bson.Mapping
 import           Database.MongoDB
+import           Control.Monad.IO.Class
 
 data Resu = Resu { number :: Int, name :: String } deriving (Data, Typeable, Show, Eq)
 $(deriveBson ''Resu)
@@ -26,15 +27,18 @@ postResu = method POST $ catchError "Internal Error" $ do
     writeLBS $ JSON.encode $ ("1" :: String) 
 
 getResu = restfulGet getResu'    
-  where getResu' id = do maybeResu <- liftIO $ resuById id
+  where getResu' id = do maybeResu <- resuById id
                          case maybeResu of
                             Nothing -> notFound
                             Just resu -> writeLBS $ JSON.encode $ resu
 
-mongoPost :: Bson a => a -> IO Value
+resuById :: MonadIO m => String -> m (Maybe Resu)
+resuById id = mongoFindOne (select ["_id" =: (read id :: ObjectId)] "resu")
+
+mongoPost :: Applicative m => MonadIO m => Bson a => a -> m Value
 mongoPost x = doMongo "resu" $ insert "resu" $ toBson x 
 
-mongoFindOne :: Bson a => Query -> IO (Maybe a)
+mongoFindOne :: MonadIO m => Bson a => Query -> m (Maybe a)
 mongoFindOne query = do
                  doc <- doMongo "resu" $ findOne query
                  case doc of
@@ -42,12 +46,9 @@ mongoFindOne query = do
                     Just d -> do result <- fromBson d 
                                  return $ Just result
 
-resuById :: String -> IO (Maybe Resu)
-resuById id = mongoFindOne (select ["_id" =: (read id :: ObjectId)] "resu")
-
-doMongo :: Database -> Action IO a -> IO a
+doMongo :: MonadIO m => Database -> Action m a -> m a
 doMongo db action = do
-  pipe <- runIOE $ connect (host "127.0.0.1")
+  pipe <- liftIO $ runIOE $ connect (host "127.0.0.1")
   result <- access pipe master db action
   case result of
     Right val -> return val 

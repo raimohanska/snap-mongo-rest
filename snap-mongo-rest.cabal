@@ -42,7 +42,8 @@ Executable snap-mongo-rest
     HTTP>=4000.2.1,
     mongoDB == 1.1.1,
     bson >= 0.1.6,
-    bson-mapping >= 0.1.4
+    bson-mapping >= 0.1.4,
+    transformers >= 0.2.2.0
 
   if flag(development)
     cpp-options: -DDEVELOPMENT

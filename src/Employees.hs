@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, TemplateHaskell #-}
+{-# LANGUAGE DeriveDataTypeable, TemplateHaskell, OverloadedStrings #-}
 
 module Employees where
 
@@ -48,8 +48,8 @@ mongoFindOne db query = do
 doMongo :: MonadIO m => Database -> Action m a -> m a
 doMongo db action = do
   pipe <- liftIO $ runIOE $ connect (host "127.0.0.1")
-  employeelt <- access pipe master db action
+  result <- access pipe master db action
   liftIO $ close pipe
-  case employeelt of
+  case result of
     Right val -> return val 
     Left failure -> fail $ show failure

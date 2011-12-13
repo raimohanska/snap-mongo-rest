@@ -1,0 +1,65 @@
+Name:                mongo-skeleton
+Version:             0.1
+Synopsis:            Project Synopsis Here
+Description:         Project Description Here
+License:             AllRightsReserved
+Author:              Author
+Maintainer:          maintainer@example.com
+Stability:           Experimental
+Category:            Web
+Build-type:          Simple
+Cabal-version:       >=1.2
+
+Flag development
+  Description: Whether to build the server in development (interpreted) mode
+  Default: False
+
+Executable mongo-skeleton
+  hs-source-dirs: src, test
+  main-is: Main.hs
+  default-language: Haskell2010
+
+  Build-depends:
+    base >= 4 && < 5,
+    bytestring >= 0.9.1 && < 0.10,
+    data-lens >= 2.0.1 && < 2.1,
+    data-lens-template >= 2.1 && < 2.2,
+    MonadCatchIO-transformers >= 0.2.1 && < 0.3,
+    mtl >= 2 && < 3,
+    snap == 0.6.0.*,
+    snap-core   == 0.6.0.*,
+    snap-server == 0.6.0.*,
+    heist == 0.6.0.*,
+    text >= 0.11,
+    time >= 1.1 && < 1.4,
+    aeson >= 0.4.0.0,
+    aeson-qq >= 0.4.1,
+    utf8-string,
+    xmlhtml == 0.1.*,
+    HUnit >= 1.2.2.3,
+    hspec >= 0.9.0,
+    hxt-regex-xmlschema >= 9.0.1,
+    HTTP>=4000.2.1,
+    mongoDB == 1.1.1,
+    bson >= 0.1.6,
+    bson-mapping >= 0.1.4
+
+  if flag(development)
+    cpp-options: -DDEVELOPMENT
+    -- In development mode, speed is already going to suffer, so skip
+    -- the fancy optimization flags.  Additionally, disable all
+    -- warnings.  The hint library doesn't give an option to execute
+    -- compiled code when there were also warnings, so disabling
+    -- warnings allows quicker workflow.
+    ghc-options: -threaded -w
+  else
+    ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
+                 -fno-warn-orphans
+
+Test-Suite tests
+  hs-source-dirs: src, test
+  Type:           exitcode-stdio-1.0
+  Main-is:        Specs.hs
+  Build-depends:  base, HUnit >= 1.2.2.3, hspec >= 0.9.0
+  ghc-options:    -threaded
+  default-language: Haskell2010

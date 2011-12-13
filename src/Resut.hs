@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, TemplateHaskell #-}
 
 module Resut where
 
@@ -13,8 +13,10 @@ import           Control.Applicative
 import           Util.HttpUtil
 import           Util.Rest
 import           Util.Json
+import           Data.Bson.Mapping
 
-data Resu = Resu { number :: Int, name :: String } deriving (Data, Typeable, Show)
+data Resu = Resu { number :: Int, name :: String } deriving (Data, Typeable, Show, Eq)
+$(deriveBson ''Resu)
 
 postResu = method POST $ catchError "Internal Error" $ do 
     resu <- readBodyJson :: Snap Resu

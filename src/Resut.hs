@@ -26,16 +26,19 @@ resuCollection = "resu"
 postResu = method POST $ catchError "Internal Error" $ do 
     resu <- readBodyJson :: Snap Resu
     liftIO $ putStrLn $ "New resu: " ++ (show resu)
-    liftIO $ mongoPost resuDb resuCollection resu
-    writeLBS $ JSON.encode $ ("1" :: String) 
+    objectId <- liftIO $ mongoPost resuDb resuCollection resu
+    writeLBS $ JSON.encode $ (objectId) 
 
 getResu = jsonGet $ resuById 
 
 resuById :: MonadIO m => String -> m (Maybe Resu)
 resuById id = mongoFindOne resuDb (select ["_id" =: (read id :: ObjectId)] resuCollection)
 
-mongoPost :: Applicative m => MonadIO m => Bson a => Database -> Collection -> a -> m Value
-mongoPost db collection x = doMongo db $ insert collection $ toBson x 
+mongoPost :: Applicative m => MonadIO m => Bson a => Database -> Collection -> a -> m String
+mongoPost db collection x = do val <- doMongo db $ insert collection $ toBson x 
+                               case val of
+                                  ObjId (oid) -> return $ show oid
+                                  _           -> fail $ "unexpected id"
 
 mongoFindOne :: MonadIO m => Bson a => Database -> Query -> m (Maybe a)
 mongoFindOne db query = do
@@ -46,6 +49,7 @@ doMongo :: MonadIO m => Database -> Action m a -> m a
 doMongo db action = do
   pipe <- liftIO $ runIOE $ connect (host "127.0.0.1")
   result <- access pipe master db action
+  liftIO $ close pipe
   case result of
     Right val -> return val 
     Left failure -> fail $ show failure

@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable, TemplateHaskell #-}
 
-module Resut where
+module Employees where
 
 import           Control.Monad
 import           Control.Monad.Trans(liftIO)
@@ -17,22 +17,22 @@ import           Data.Bson.Mapping
 import           Database.MongoDB
 import           Control.Monad.IO.Class
 
-data Resu = Resu { number :: Int, name :: String } deriving (Data, Typeable, Show, Eq)
-$(deriveBson ''Resu)
+data Employee = Employee { number :: Int, name :: String } deriving (Data, Typeable, Show, Eq)
+$(deriveBson ''Employee)
 
-resuDb = "resu"
-resuCollection = "resu"
+employeeDb = "employee"
+employeeCollection = "employee"
 
-postResu = method POST $ catchError "Internal Error" $ do 
-    resu <- readBodyJson :: Snap Resu
-    liftIO $ putStrLn $ "New resu: " ++ (show resu)
-    objectId <- liftIO $ mongoPost resuDb resuCollection resu
+postEmployee = method POST $ catchError "Internal Error" $ do 
+    employee <- readBodyJson :: Snap Employee
+    liftIO $ putStrLn $ "New employee: " ++ (show employee)
+    objectId <- liftIO $ mongoPost employeeDb employeeCollection employee
     writeLBS $ JSON.encode $ (objectId) 
 
-getResu = jsonGet $ resuById 
+getEmployee = jsonGet $ employeeById 
 
-resuById :: MonadIO m => String -> m (Maybe Resu)
-resuById id = mongoFindOne resuDb (select ["_id" =: (read id :: ObjectId)] resuCollection)
+employeeById :: MonadIO m => String -> m (Maybe Employee)
+employeeById id = mongoFindOne employeeDb (select ["_id" =: (read id :: ObjectId)] employeeCollection)
 
 mongoPost :: Applicative m => MonadIO m => Bson a => Database -> Collection -> a -> m String
 mongoPost db collection x = do val <- doMongo db $ insert collection $ toBson x 
@@ -48,8 +48,8 @@ mongoFindOne db query = do
 doMongo :: MonadIO m => Database -> Action m a -> m a
 doMongo db action = do
   pipe <- liftIO $ runIOE $ connect (host "127.0.0.1")
-  result <- access pipe master db action
+  employeelt <- access pipe master db action
   liftIO $ close pipe
-  case result of
+  case employeelt of
     Right val -> return val 
     Left failure -> fail $ show failure

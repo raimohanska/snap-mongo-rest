@@ -1,5 +1,47 @@
 A simple example of a RESTful web service implemented in Haskell/Snap, with MongoDB backend.
 
+The beef is in `src/Employees.hs` and looks like this:
+
+~~~ .haskell
+
+data Employee = Employee { number :: Int, name :: String } deriving (Data, Typeable, Show, Eq)
+$(deriveBson ''Employee)
+
+employeeDb = "employee"
+employeeCollection = "employee"
+
+postEmployee = method POST $ catchError "Internal Error" $ do 
+    employee <- readBodyJson :: Snap Employee
+    liftIO $ putStrLn $ "New employee: " ++ (show employee)
+    objectId <- liftIO $ mongoPost employeeDb employeeCollection employee
+    writeLBS $ JSON.encode $ (objectId) 
+
+getEmployee = jsonGet $ employeeById 
+
+employeeById :: MonadIO m => String -> m (Maybe Employee)
+employeeById id = mongoFindOne employeeDb (select ["_id" =: (read id :: ObjectId)] employeeCollection)
+
+mongoPost :: Applicative m => MonadIO m => Bson a => Database -> Collection -> a -> m String
+mongoPost db collection x = do val <- doMongo db $ insert collection $ toBson x 
+                               case val of
+                                  ObjId (oid) -> return $ show oid
+                                  _           -> fail $ "unexpected id"
+
+mongoFindOne :: MonadIO m => Bson a => Database -> Query -> m (Maybe a)
+mongoFindOne db query = do
+                 doc <- doMongo db $ findOne query
+                 return (doc >>= (fromBson >=> Just))
+
+doMongo :: MonadIO m => Database -> Action m a -> m a
+doMongo db action = do
+  pipe <- liftIO $ runIOE $ connect (host "127.0.0.1")
+  result <- access pipe master db action
+  liftIO $ close pipe
+  case result of
+    Right val -> return val 
+    Left failure -> fail $ show failure
+~~~
+
 Installation and Running
 ========================
 

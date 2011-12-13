@@ -1,6 +1,3 @@
-snap-mongo-rest
-===============
-
 A simple example of a RESTful web service implemented in Haskell/Snap, with MongoDB backend.
 
 Installation and Running
@@ -31,3 +28,19 @@ curl localhost:8000/employee/4ee74a1128b8fa6367000000
 => {"name":"Winston Wolf","number":500}
 ~~~
 
+Development
+===========
+
+To play around, you can use the script `repl` that fires up GHCI with suitable params.
+
+Then,
+
+~~~ .haskell
+Prelude> :l Server
+...
+*Server> main
+...
+Listening on http://0.0.0.0:8000/
+~~~
+
+`ctrl-C` to stop server. `:r` to reload sources. `main` to run it again.
